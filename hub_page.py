@@ -16,13 +16,13 @@ st.markdown('''<style>
 .hub-icon{width:54px;height:54px;border-radius:17px;background:#f9eaf0;display:flex;align-items:center;justify-content:center;color:#b47a95}
 .hub-icon svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .hub-number{color:#c7aeba;font-size:12px;letter-spacing:.08em}
-.hub-card-title{color:#775565;font-size:21px;font-weight:600;line-height:1.6;margin:0 0 10px}
-.hub-card-copy{font-size:14px;line-height:1.9;color:#9a7f8d;min-height:82px;margin:0 0 20px}
+.hub-card-title{min-height:68px;display:flex;align-items:flex-start;color:#775565;font-size:21px;font-weight:600;line-height:1.6;margin:0 0 10px}
+.hub-card-copy{font-size:14px;line-height:1.9;color:#9a7f8d;height:84px;margin:0 0 20px}
 [data-testid="stLinkButton"] a,[data-testid="stButton"] button{border:1px solid #ecd0dd!important;border-radius:12px!important;background:#f9e8f0!important;color:#95617b!important;font-size:14px;min-height:46px;box-shadow:none!important}
 [data-testid="stLinkButton"] a:hover,[data-testid="stButton"] button:hover{background:#f4dce7!important;border-color:#dcb3c6!important}
 .hub-footer{border-top:1px solid #ecdde4;margin-top:42px;padding-top:24px;text-align:center;color:#a58a97;font-size:12px;line-height:2}
 .hub-footer strong{font-weight:500;color:#8d6a7d}
-@media(max-width:760px){.block-container{padding:2rem 1rem}.hub-hero{padding:.8rem 0 2rem}.hub-hero p{font-size:14px}.hub-card-copy{min-height:0}.hub-hero h1{font-size:31px}}
+@media(max-width:760px){.block-container{padding:2rem 1rem}.hub-hero{padding:.8rem 0 2rem}.hub-hero p{font-size:14px}.hub-card-copy{height:auto;min-height:84px}.hub-hero h1{font-size:31px}}
 @media(prefers-reduced-motion:reduce){.st-key-structure,.st-key-analysis,.st-key-recommendation{transition:none}.st-key-structure:hover,.st-key-analysis:hover,.st-key-recommendation:hover{transform:none}}
 </style>''', unsafe_allow_html=True)
 
