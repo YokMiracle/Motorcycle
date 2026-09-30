@@ -1,192 +1,91 @@
 from pathlib import Path
-import base64, io, json
-from datetime import date
-from urllib.parse import urlparse
-import pandas as pd
+import base64,io,json
 from PIL import Image
 import streamlit as st
 from neo4j_service import *
-
 ROOT=Path(__file__).parent
-st.set_page_config(page_title='MotoGraph Recommendation',page_icon='🏍️',layout='wide',initial_sidebar_state='expanded')
+st.set_page_config(page_title='Motorcycle Recommendation',page_icon='🏍️',layout='wide')
 st.markdown('''<style>
-:root{--ink:#172033;--muted:#6b7280;--line:#e8eaf0;--soft:#f7f8fb;--accent:#ff6b6b}
-.block-container{padding-top:1.25rem;max-width:1320px}.hero{padding:30px 34px;border-radius:26px;background:linear-gradient(135deg,#171923,#252b3b 58%,#384152);color:#fff;margin-bottom:20px;box-shadow:0 16px 45px #11182718}.hero h1{margin:0;color:#fff;font-size:2.15rem}.hero p{margin:.5rem 0 0;color:#d8dce6}.section{font-weight:750;font-size:1.35rem;margin:8px 0 12px}.muted{color:#6b7280}.pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#f1f3f7;font-size:.82rem;color:#4b5563;margin-right:5px}.stButton>button{border-radius:12px;font-weight:650}[data-testid="stMetric"]{border:1px solid #e8eaf0;padding:15px;border-radius:18px;background:#fff;box-shadow:0 4px 18px #11182708}[data-testid="stSidebar"]{border-right:1px solid #eceef3}.motor-card{border:1px solid #e8eaf0;border-radius:18px;padding:10px;background:#fff}.stDataFrame{border:1px solid #eceef3;border-radius:14px;overflow:hidden}</style>''',unsafe_allow_html=True)
-
-MENU=['ภาพรวม','แนะนำสำหรับคุณ','บันทึกความชอบ','ประวัติความชอบ','กราฟความสัมพันธ์','จัดการข้อมูล']
+.stApp{background:linear-gradient(120deg,#fff7f7,#f6f1ff)} .block-container{max-width:1280px;padding-top:3rem}
+[data-testid="stSidebar"]{background:linear-gradient(180deg,#25164b,#55207a);color:white}[data-testid="stSidebar"] *{color:white!important}
+.hero{background:linear-gradient(110deg,#ef4388,#b64de8,#6469ff);padding:38px;border-radius:25px;color:white;box-shadow:0 18px 35px #d25edc33;margin-bottom:20px}.hero h1{font-size:2.3rem;margin:0 0 20px}.hero p{font-size:1.05rem;margin:0}
+.stat{background:white;border-radius:20px;padding:22px;text-align:center;box-shadow:0 8px 25px #9b72bc16}.stat b{font-size:2.2rem;color:#a84be1}.stat span{display:block;color:#6e6879}.card{border:1px solid #ddd1df;border-radius:14px;padding:16px;margin-bottom:16px;background:#fff8fb}.pill{display:inline-block;background:#e8e9ff;color:#5360a9;padding:4px 12px;border-radius:20px;margin:3px}.stButton>button{border:0;border-radius:22px;background:linear-gradient(90deg,#ef4388,#b84de5);color:white;padding:.55rem 1.2rem}div[data-baseweb="select"]>div{background:#f3edff;border-color:#e65b98}</style>''',unsafe_allow_html=True)
 with st.sidebar:
-    if (ROOT/'img.jpg').exists(): st.image(str(ROOT/'img.jpg'),width=120)
-    st.title('MotoGraph')
-    st.caption('Motorcycle Recommendation System')
-    page=st.radio('เมนูหลัก',MENU,label_visibility='collapsed')
-    st.divider(); st.caption('Neo4j · Graph Recommendation · Streamlit')
-
-st.markdown('<div class="hero"><h1>🏍️ Motorcycle Graph Recommendation</h1><p>ระบบแนะนำมอเตอร์ไซค์จากความชอบของผู้ใช้และความสัมพันธ์ในกราฟ</p></div>',unsafe_allow_html=True)
-
-try:
-    query('RETURN 1 AS ok')
-except Exception as e:
-    st.error('ยังเชื่อมต่อ Neo4j ไม่ได้ กรุณาตั้งค่า .streamlit/secrets.toml ตาม README')
-    st.code(str(e)); st.stop()
-
-if not users() or not models():
-    st.info('ฐานข้อมูลยังว่าง กดปุ่มด้านล่างเพื่อสร้างข้อมูลมอเตอร์ไซค์เดิมของโปรเจกต์')
-    if st.button('สร้างข้อมูลเริ่มต้น',type='primary'):
-        setup_data(); st.rerun()
-    st.stop()
+ st.markdown('### ผู้จัดทำ: ณัฏฐนันท์ เกียรติจิรยาดา')
+ st.markdown('**รหัส: 664245008**'); st.write(''); st.write(''); st.markdown('**เมนู**')
+ page=st.radio('', ['🔵 🏍️ แนะนำมอเตอร์ไซค์','🟣 👥 จัดการคน & เพื่อน','⚪ 🛵 จัดการรถ & การเลือก','⚪ 🕸️ กราฟความสัมพันธ์'],label_visibility='collapsed')
+try: query('RETURN 1')
+except Exception as e: st.error('เชื่อมต่อ Neo4j ไม่ได้'); st.code(str(e)); st.stop()
+setup_data()
+def hero(): st.markdown('<div class="hero"><h1>Motorcycle Recommendation</h1><p>แนะนำมอเตอร์ไซค์จากเพื่อนของคุณ ด้วย Neo4j Graph Database</p></div>',unsafe_allow_html=True)
+def summary():
+ s=stats(); cols=st.columns(4); vals=[(s['users'],'👤 คน'),(s['motorcycles'],'🏍️ มอเตอร์ไซค์'),(s['friendships'],'🤝 ความเป็นเพื่อน'),(s['orders'],'📋 การเลือก')]
+ for c,(v,l) in zip(cols,vals): c.markdown(f'<div class="stat"><b>{v}</b><span>{l}</span></div>',unsafe_allow_html=True)
+def img(r):
+ try:
+  if r.get('image_data'): st.image(base64.b64decode(r['image_data']),use_container_width=True)
+  elif r.get('image_url'): st.image(r['image_url'],use_container_width=True)
+ except: pass
+hero(); summary(); st.write('')
+U=users()
+if page.startswith('🔵'):
+ u=st.selectbox('เลือกชื่อของคุณ',U); fs=friends(u); st.markdown('เพื่อนของ '+u+': '+' '.join(f'<span class="pill">{x}</span>' for x in fs),unsafe_allow_html=True)
+ rec=recommendations(u); st.markdown(f'## ✨ มอเตอร์ไซค์แนะนำสำหรับ {u} ({len(rec)})')
+ if not rec: st.info('ยังไม่มีคำแนะนำใหม่ ลองเพิ่มเพื่อนหรือเพิ่มข้อมูลการเลือกมอเตอร์ไซค์')
+ cols=st.columns(3)
+ for i,r in enumerate(rec):
+  with cols[i%3]:
+   st.markdown('<div class="card">',unsafe_allow_html=True); img(r); st.subheader(r['name']); st.markdown('เพื่อนที่เลือก: '+' '.join(f'<span class="pill">{x}</span>' for x in r['friend_names']),unsafe_allow_html=True)
+   if st.button('🏍️ ฉันเลือกรุ่นนี้แล้ว',key='rec'+r['name']): order(u,r['name']); st.rerun()
+   st.markdown('</div>',unsafe_allow_html=True)
+elif page.startswith('🟣'):
+ t1,t2,t3=st.tabs(['➕ เพิ่มคน','🤝 เพิ่มความสัมพันธ์','✂️ ลบ'])
+ with t1:
+  n=st.text_input('ชื่อคนใหม่');
+  if st.button('➕ เพิ่มคน') and n: add_user(n); st.rerun()
+ with t2:
+  c1,c2=st.columns(2); a=c1.selectbox('คนที่ 1',U); b=c2.selectbox('คนที่ 2',U,index=min(1,len(U)-1)); st.markdown('เพื่อนของ '+a+' ตอนนี้: '+' '.join(f'<span class="pill">{x}</span>' for x in friends(a)),unsafe_allow_html=True)
+  if st.button('🤝 เชื่อมเป็นเพื่อนกัน'): add_friend(a,b); st.rerun()
+ with t3:
+  st.subheader('ลบความสัมพันธ์'); a=st.selectbox('เลือกคน',U,key='rf'); f=friends(a)
+  if f:
+   b=st.selectbox('เลือกเพื่อนที่จะลบ',f); 
+   if st.button('ลบความสัมพันธ์'): remove_friend(a,b); st.rerun()
+  st.divider(); st.subheader('ลบคน (ความสัมพันธ์และการเลือกของคนนั้นจะหายด้วย)'); d=st.selectbox('เลือกคนที่จะลบ',U,key='du'); ok=st.checkbox('ยืนยันลบ '+d)
+  if st.button('ลบคน') and ok: delete_user(d); st.rerun()
+elif page.startswith('⚪ 🛵'):
+ t1,t2,t3=st.tabs(['➕ เพิ่มมอเตอร์ไซค์','📋 บันทึกการเลือก','🗑️ ลบมอเตอร์ไซค์'])
+ with t1:
+  n=st.text_input('ชื่อมอเตอร์ไซค์'); price=st.number_input('ราคา (บาท)',0,10000000,0,1000); up=st.file_uploader('รูปภาพ (ไม่บังคับ)',type=['jpg','jpeg','png','webp'])
+  if st.button('เพิ่มมอเตอร์ไซค์'):
+   data=''
+   if up:
+    im=Image.open(up).convert('RGB'); im.thumbnail((1200,900)); b=io.BytesIO(); im.save(b,'JPEG',quality=88); data=base64.b64encode(b.getvalue()).decode()
+   add_motorcycle(n,price,data=data); st.rerun()
+ with t2:
+  u=st.selectbox('ใครเลือก?',U); M=[x['name'] for x in motorcycles()]; choices=st.multiselect('เลือกมอเตอร์ไซค์อะไร?',M)
+  if st.button('📋 บันทึกการเลือก'):
+   for m in choices: order(u,m)
+   st.rerun()
+  old=ordered(u); st.markdown('**'+u+' เคยเลือก:**');
+  for x in old:
+   c1,c2=st.columns([8,1]); c1.markdown(f'<span class="pill">{x["name"]}</span>',unsafe_allow_html=True)
+   if c2.button('ลบ',key='o'+x['name']): remove_order(u,x['name']); st.rerun()
+ with t3:
+  M=[x['name'] for x in motorcycles()]; d=st.selectbox('เลือกรถที่จะลบ',M)
+  if st.button('ลบมอเตอร์ไซค์'): delete_motorcycle(d); st.rerun()
 else:
-    # Safe idempotent migration: keeps old RENTED data while switching app semantics to LIKES.
-    try: setup_data()
-    except Exception: pass
-
-def show_image(row, height=None):
-    try:
-        if row.get('image_data'): st.image(base64.b64decode(row['image_data']),use_container_width=True)
-        elif row.get('image_url'): st.image(row['image_url'],use_container_width=True)
-        else: st.image(str(ROOT/'assets'/'placeholder.png'),use_container_width=True)
-    except Exception: st.image(str(ROOT/'assets'/'placeholder.png'),use_container_width=True)
-
-def user_picker(key,label='เลือกผู้ใช้'):
-    return st.selectbox(label,users(),key=key)
-
-def motorcycle_cards(rows,recommendation=False):
-    if not rows: st.info('ยังไม่มีข้อมูลที่จะแสดง'); return
-    cols=st.columns(3)
-    for i,r in enumerate(rows):
-        with cols[i%3]:
-            with st.container(border=True):
-                show_image(r); st.subheader(r['name'])
-                if recommendation:
-                    st.write(f"⭐ {float(r.get('avg_rating',0)):.1f}/5  ·  ❤️ {int(r.get('like_count',0))} คนชอบ")
-                    st.progress(min(float(r.get('score',0))/15,1.0),text=f"Recommendation score {float(r.get('score',0)):.2f}")
-                    if r.get('similar_users'): st.caption('ผู้ใช้ที่ชอบคล้ายกัน: '+', '.join(r['similar_users']))
-                    if r.get('shared_models'): st.caption('เชื่อมโยงจากรถที่ชอบเหมือนกัน: '+', '.join(r['shared_models']))
-                else:
-                    if 'like_count' in r: st.caption(f"❤️ {int(r.get('like_count',0))} ความชอบ · ⭐ {float(r.get('avg_rating',0)):.1f}")
-
-def dataframe(rows, columns=None):
-    df=pd.DataFrame(rows)
-    if columns and not df.empty: df=df.rename(columns=columns)
-    st.dataframe(df,hide_index=True,use_container_width=True)
-
-if page=='ภาพรวม':
-    u=user_picker('overview_user')
-    st.markdown('---')
-    s=stats(); p=user_profile(u)
-    a,b,c,d=st.columns(4)
-    a.metric('ผู้ใช้ทั้งหมด',s['users']); b.metric('มอเตอร์ไซค์',s['motorcycles']); c.metric('ความสัมพันธ์ LIKES',s['likes']); d.metric('คะแนนเฉลี่ย',f"{float(s['avg_rating']):.2f}/5")
-    st.divider()
-    left,right=st.columns([1,2])
-    with left:
-        st.markdown(f'<div class="section">โปรไฟล์ · {u}</div>',unsafe_allow_html=True)
-        st.metric('รถที่ชอบ',p['likes']); st.metric('คะแนนเฉลี่ยที่ให้',f"{float(p['avg_rating']):.2f}/5")
-        st.caption('เลือกชื่อผู้ใช้ด้านบนเพื่อดูข้อมูลของแต่ละคน')
-    with right:
-        st.markdown('<div class="section">ความชอบล่าสุด</div>',unsafe_allow_html=True)
-        h=history(u)
-        if h: dataframe(h,{'motorcycle':'มอเตอร์ไซค์','rating':'คะแนน','date':'วันที่'})
-        else: st.info('ผู้ใช้นี้ยังไม่มีข้อมูลความชอบ')
-    st.markdown('<div class="section">มอเตอร์ไซค์ยอดนิยมในระบบ</div>',unsafe_allow_html=True)
-    motorcycle_cards(popular(6))
-
-elif page=='แนะนำสำหรับคุณ':
-    u=user_picker('recommend_user')
-    st.caption('เลือกผู้ใช้ → ระบบหา User ที่ชอบรถเหมือนกัน → นำรถที่คนเหล่านั้นชอบ แต่ผู้ใช้นี้ยังไม่เคยเลือก มาคำนวณและจัดอันดับ')
-    n=st.slider('จำนวนคำแนะนำ',3,10,6)
-    result=recommend(u,n)
-    st.markdown(f'<div class="section">✨ แนะนำสำหรับ {u}</div>',unsafe_allow_html=True)
-    motorcycle_cards(result,True)
-    if not result: st.info('ข้อมูลความสัมพันธ์ของผู้ใช้นี้ยังไม่พอสำหรับสร้างคำแนะนำ ลองเพิ่มความชอบในเมนู “บันทึกความชอบ”')
-
-elif page=='บันทึกความชอบ':
-    u=user_picker('pref_user')
-    rows=catalog(); names=[x['name'] for x in rows]
-    m=st.selectbox('เลือกมอเตอร์ไซค์',names)
-    row=next(x for x in rows if x['name']==m)
-    left,right=st.columns([1,1.5])
-    with left: show_image(row)
-    with right:
-        st.subheader(m); st.caption('บันทึกว่าผู้ใช้สนใจ/ชอบรถรุ่นนี้ เพื่อใช้สร้างความสัมพันธ์ใน Neo4j')
-        with st.form('preference_form'):
-            rating=st.slider('คะแนนความชอบ',1.0,5.0,4.0,.5)
-            d=st.date_input('วันที่บันทึก',date.today(),max_value=date.today())
-            submitted=st.form_submit_button('บันทึกความชอบ',type='primary',use_container_width=True)
-        if submitted:
-            save_preference(u,m,rating,d.isoformat()); st.success('บันทึก LIKES และคะแนนเรียบร้อย'); st.rerun()
-    mine=liked(u)
-    if mine:
-        st.divider(); st.subheader(f'รายการที่ {u} ชอบอยู่')
-        remove=st.selectbox('เลือกรายการหากต้องการลบความชอบ',[x['name'] for x in mine])
-        if st.button('ลบความชอบที่เลือก'):
-            remove_preference(u,remove); st.success('ลบแล้ว'); st.rerun()
-
-elif page=='ประวัติความชอบ':
-    u=user_picker('history_user')
-    h=history(u)
-    st.markdown(f'<div class="section">ประวัติของ {u}</div>',unsafe_allow_html=True)
-    if h:
-        df=pd.DataFrame(h).rename(columns={'motorcycle':'มอเตอร์ไซค์','rating':'คะแนน','date':'วันที่'})
-        c1,c2,c3=st.columns(3); c1.metric('จำนวนรถที่ชอบ',len(df)); c2.metric('คะแนนเฉลี่ย',f"{df['คะแนน'].mean():.2f}/5"); c3.metric('คะแนนสูงสุด',f"{df['คะแนน'].max():.1f}/5")
-        st.dataframe(df,hide_index=True,use_container_width=True)
-        st.bar_chart(df.set_index('มอเตอร์ไซค์')['คะแนน'],horizontal=True)
-    else: st.info('ยังไม่มีประวัติความชอบ')
-
-elif page=='กราฟความสัมพันธ์':
-    mode=st.radio('แสดงกราฟ',['เฉพาะผู้ใช้ที่เลือก','ผู้ใช้ทั้งหมด'],horizontal=True)
-    u=user_picker('graph_user') if mode=='เฉพาะผู้ใช้ที่เลือก' else None
-    edges=graph_edges(u)
-    dot=['digraph G {','rankdir=LR;','graph [bgcolor="transparent", pad="0.3"];','node [fontname="Arial", margin="0.15"];','edge [fontname="Arial", color="#9CA3AF"];']
-    for e in edges:
-        uid='u:'+e['user']; mid='m:'+e['motorcycle']
-        dot += [f'{json.dumps(uid)} [label={json.dumps(e["user"])} shape=ellipse style=filled fillcolor="#DBEAFE" color="#93C5FD"];',
-                f'{json.dumps(mid)} [label={json.dumps(e["motorcycle"])} shape=box style="rounded,filled" fillcolor="#F3F4F6" color="#D1D5DB"];',
-                f'{json.dumps(uid)} -> {json.dumps(mid)} [label={json.dumps("LIKES · "+str(e["rating"] if e["rating"] is not None else "-"))}];']
-    st.graphviz_chart('\n'.join(dot+['}']),use_container_width=True)
-    if edges: dataframe(edges,{'user':'ผู้ใช้','motorcycle':'มอเตอร์ไซค์','rating':'คะแนน','date':'วันที่'})
-    else: st.info('ยังไม่มีความสัมพันธ์')
-
-elif page=='จัดการข้อมูล':
-    tab1,tab2,tab3=st.tabs(['🏍️ มอเตอร์ไซค์','👤 ผู้ใช้','🖼️ รูปภาพ'])
-    with tab1:
-        st.subheader('เพิ่มมอเตอร์ไซค์ใหม่')
-        with st.form('add_motorcycle_form'):
-            name=st.text_input('ชื่อมอเตอร์ไซค์')
-            upload=st.file_uploader('รูปรถ',type=['jpg','jpeg','png','webp'])
-            url=st.text_input('หรือ URL รูปภาพ (https://)')
-            add=st.form_submit_button('เพิ่มมอเตอร์ไซค์',type='primary')
-        if add:
-            try:
-                data=''
-                if upload:
-                    im=Image.open(upload).convert('RGB'); im.thumbnail((1200,900)); buf=io.BytesIO(); im.save(buf,'JPEG',quality=88); data=base64.b64encode(buf.getvalue()).decode(); url=''
-                if url and not (urlparse(url).scheme=='https' and urlparse(url).netloc): raise ValueError('URL ต้องขึ้นต้นด้วย https://')
-                add_motorcycle(name,url.strip(),data); st.success('เพิ่มรถใหม่แล้ว'); st.rerun()
-            except Exception as e: st.error(str(e))
-        st.divider(); st.subheader('รายการมอเตอร์ไซค์ทั้งหมด')
-        rows=catalog(); dataframe([{k:v for k,v in r.items() if k not in ('image_data','image_url')} for r in rows],{'name':'ชื่อรถ','avg_rating':'คะแนนเฉลี่ย','like_count':'จำนวนคนชอบ'})
-        delete=st.selectbox('เลือกรถที่ต้องการลบ',[r['name'] for r in rows],key='delcar')
-        if st.button('ลบมอเตอร์ไซค์',key='delete_car'):
-            delete_motorcycle(delete); st.warning('ลบมอเตอร์ไซค์และความสัมพันธ์แล้ว'); st.rerun()
-    with tab2:
-        st.subheader('จัดการผู้ใช้')
-        newuser=st.text_input('ชื่อผู้ใช้ใหม่')
-        if st.button('เพิ่มผู้ใช้',type='primary'):
-            try: add_user(newuser); st.success('เพิ่มผู้ใช้แล้ว'); st.rerun()
-            except Exception as e: st.error(str(e))
-        st.write('ผู้ใช้ในระบบ: '+', '.join(users()))
-        delu=st.selectbox('เลือกผู้ใช้ที่ต้องการลบ',users(),key='deluser')
-        if st.button('ลบผู้ใช้'):
-            delete_user(delu); st.warning('ลบผู้ใช้และความสัมพันธ์แล้ว'); st.rerun()
-    with tab3:
-        st.subheader('แก้ไขรูปมอเตอร์ไซค์')
-        rows=catalog(); m=st.selectbox('เลือกรถ',[x['name'] for x in rows],key='editcar'); row=next(x for x in rows if x['name']==m); show_image(row)
-        upload=st.file_uploader('อัปโหลดรูปใหม่',type=['jpg','jpeg','png','webp'],key='editimg')
-        url=st.text_input('หรือ URL ใหม่',value=row.get('image_url') or '',key='editurl')
-        if st.button('บันทึกรูป',type='primary'):
-            try:
-                data=row.get('image_data') or ''
-                if upload:
-                    im=Image.open(upload).convert('RGB'); im.thumbnail((1200,900)); buf=io.BytesIO(); im.save(buf,'JPEG',quality=88); data=base64.b64encode(buf.getvalue()).decode(); url=''
-                if url and not (urlparse(url).scheme=='https' and urlparse(url).netloc): raise ValueError('URL ต้องขึ้นต้นด้วย https://')
-                save_image(m,url.strip(),data); st.success('บันทึกรูปแล้ว'); st.rerun()
-            except Exception as e: st.error(str(e))
+ c1,c2=st.columns([2,1]); who=c1.selectbox('ไฮไลต์คน',['— ทุกคน —']+U); show=c2.checkbox('แสดงมอเตอร์ไซค์ที่เลือก',True)
+ fs,os=edges(None if who=='— ทุกคน —' else who,show); dot=['graph G {','layout=neato; overlap=false; splines=true; bgcolor="transparent";','node [fontname="Arial"];']
+ hi=None if who=='— ทุกคน —' else who
+ people=set([x['a'] for x in fs]+[x['b'] for x in fs]+[x['a'] for x in os])
+ bikes=set(x['b'] for x in os)
+ for p in people:
+  color='#ef3b83' if p==hi else '#dcd9ff'; dot.append(f'{json.dumps("u"+p)} [label={json.dumps(p)},shape=circle,style=filled,fillcolor="{color}",color="white",width=1];')
+ for m in bikes: dot.append(f'{json.dumps("m"+m)} [label={json.dumps(m)},shape=box,style="rounded,filled",fillcolor="#ffe0a8",color="white"];')
+ seen=set()
+ for e in fs:
+  k=tuple(sorted((e['a'],e['b'])));
+  if k not in seen: dot.append(f'{json.dumps("u"+e["a"])} -- {json.dumps("u"+e["b"])} [color="#9db7ff",penwidth=2];'); seen.add(k)
+ for e in os: dot.append(f'{json.dumps("u"+e["a"])} -- {json.dumps("m"+e["b"])} [color="#d9b66c",style=dashed];')
+ dot.append('}'); st.graphviz_chart('\n'.join(dot),use_container_width=True)
