@@ -113,10 +113,10 @@ else:
     if page == "ภาพรวมระบบ":
         edges = query("MATCH (u:User)-[r:RENTED]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle, r.rating AS rating", {"users":USERS,"models":MODELS})
         a,b,c,d = st.columns(4)
-        user = st.selectbox("เลือกผู้ใช้", USERS)
         a.metric("ผู้ใช้", len(USERS)); b.metric("รุ่นรถเช่า", len(rows)); c.metric("รายการเช่าทั้งหมด", len(edges))
         rating_stats = query("MATCH (u:User)-[r:RENTED]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN avg(r.rating) AS avg_rating", {"users":USERS,"models":MODELS})
         d.metric("คะแนนเฉลี่ย / 5", f"{(rating_stats[0]['avg_rating'] or 0):.2f}")
+        user = st.selectbox("เลือกผู้ใช้", USERS)
         st.divider()
         left,right = st.columns([1,2])
         history = rental_history(user)
