@@ -54,7 +54,7 @@ ICONS = {
 def card_heading(kind, number, title, copy):
     st.markdown(f'''<div class="hub-card-top"><div class="hub-icon"><svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[kind]}</svg></div><span class="hub-number">{number}</span></div><div class="hub-card-title" role="heading" aria-level="2">{title}</div><p class="hub-card-copy">{copy}</p>''', unsafe_allow_html=True)
 
-st.markdown('''<div class="hub-hero"><span class="hub-badge">MOTORCYCLE · RECOMMENDATION HUB</span><h1>รวมงาน Recommendation <br>ที่ใช่สำหรับคุณ</h1><p>เชื่อมโยงความชอบ สู่มอเตอร์ไซค์ที่น่าสนใจ<br>รวมโครงสร้างข้อมูล การวิเคราะห์ และระบบแนะนำไว้ในที่เดียว</p></div><div class="hub-section">เลือกส่วนของโปรเจกต์ที่ต้องการสำรวจ</div>''', unsafe_allow_html=True)
+st.markdown('''<div class="hub-hero"><span class="hub-badge">MOTORCYCLE · RECOMMENDATION HUB</span><h1>รวมงาน Recommendation <br><p>เชื่อมโยงความชอบ สู่มอเตอร์ไซค์ที่น่าสนใจ<br>รวมโครงสร้างข้อมูล การวิเคราะห์ และระบบแนะนำไว้ในที่เดียว</p></div><div class="hub-section">เลือกส่วนของโปรเจกต์ที่ต้องการสำรวจ</div>''', unsafe_allow_html=True)
 
 columns = st.columns(3, gap='large')
 with columns[0], st.container(border=True, height=420, key='structure'):
