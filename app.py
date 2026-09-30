@@ -10,9 +10,27 @@ from neo4j_service import USERS, MODELS, catalog, liked, recommend, seed_demo_da
 
 ROOT = Path(__file__).parent
 st.set_page_config(page_title="Motorcycle Recommender", page_icon="🏍️", layout="wide")
-st.title("🏍️ Motorcycle Recommendation System")
-st.caption("ระบบแนะนำรถมอเตอร์ไซค์ด้วย Neo4j · 664245008")
-page = st.sidebar.radio("เมนู", ["ภาพรวม", "รถที่แนะนำ", "ค้นหารถ", "บันทึกความชอบ", "กราฟความสัมพันธ์", "ตั้งค่า / รูปภาพ"])
+st.markdown("""
+<style>
+.block-container {padding-top:1.3rem;padding-bottom:2rem;}
+.hero {padding:1.4rem 1.6rem;border-radius:22px;background:linear-gradient(120deg,#111827 0%,#1f2937 55%,#0f766e 100%);color:white;margin-bottom:1rem;}
+.hero h1 {margin:0;font-size:2.15rem;color:white;}
+.hero p {opacity:.88;margin:.35rem 0 0 0;}
+[data-testid="stSidebar"] {background:#f0f2f6;}
+</style>
+""", unsafe_allow_html=True)
+with st.sidebar:
+    st.image(str(ROOT / "img.jpg"), width=150)
+    st.markdown("## 🏍️ GraphMotorcycle")
+    st.caption("Neo4j Aura + Streamlit")
+    page = st.radio("เมนู", ["Dashboard", "Recommendations", "Book Search", "Borrow / Rate", "Graph Explorer", "Admin / Setup"])
+    st.divider()
+    st.caption("Bachelor-level Graph Database Project")
+st.markdown("""
+<div class="hero"><h1>🏍️ GraphMotorcycle Recommendation System</h1>
+<p>ระบบแนะนำรถมอเตอร์ไซค์ด้วย Graph Database ที่อธิบายเหตุผลของคำแนะนำได้</p></div>
+""", unsafe_allow_html=True)
+
 try:
     query("RETURN 1 AS ok")
 except Exception:
@@ -51,7 +69,7 @@ def cards(rows, recommendations=False):
                     st.write("ผู้ใช้ที่มีความชอบใกล้กัน: " + ", ".join(row["similar_users"]))
                     st.caption("ชอบรุ่นเดียวกัน: " + ", ".join(row["shared_models"]))
 
-if page == "ตั้งค่า / รูปภาพ":
+if page == "Admin / Setup":
     st.subheader("สร้างข้อมูลจาก Notebook")
     st.caption("MERGE ข้อมูล 10 ผู้ใช้ 10 รุ่น และ 21 ความชอบ กดซ้ำได้ ไม่ลบข้อมูลเดิม และเก็บภาพที่เพิ่มไว้")
     if st.button("สร้างข้อมูลตัวอย่าง", type="primary"):
@@ -87,30 +105,34 @@ if page == "ตั้งค่า / รูปภาพ":
 else:
     rows = catalog()
     if not rows:
-        st.info("ไปที่ ตั้งค่า / รูปภาพ แล้วกดสร้างข้อมูลตัวอย่าง")
+        st.info("ไปที่ Admin / Setup แล้วกดสร้างข้อมูลตัวอย่าง")
         st.stop()
-    user = st.sidebar.selectbox("ผู้ใช้", USERS)
-    if page == "ภาพรวม":
+    user = st.selectbox("เลือกผู้ใช้", USERS)
+    if page == "Dashboard":
         edges = query("MATCH (u:User)-[:LIKES]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle", {"users":USERS,"models":MODELS})
         a,b,c = st.columns(3)
         a.metric("ผู้ใช้ในชุดข้อมูล", len(USERS)); b.metric("รุ่นรถ", len(rows)); c.metric("ความชอบ", len(edges))
         st.subheader(f"รถที่ {user} ชอบ")
         cards(liked(user))
-    elif page == "รถที่แนะนำ":
+    elif page == "Recommendations":
+        st.subheader("✨ รถมอเตอร์ไซค์ที่แนะนำ")
         top_n = st.slider("จำนวนคำแนะนำสูงสุด", 1, 10, 6)
         st.caption("คะแนน = จำนวนเส้นทาง ผู้ใช้ → รถที่ชอบ → ผู้ใช้อื่น → รถใหม่ · ตัดรุ่นที่ชอบแล้ว · คะแนนเท่ากันเรียงชื่อรุ่น")
         cards(recommend(user, top_n), True)
-    elif page == "ค้นหารถ":
+    elif page == "Book Search":
+        st.subheader("🔎 ค้นหารถมอเตอร์ไซค์")
         keyword = st.text_input("ชื่อรุ่นหรือยี่ห้อ")
         cards([r for r in rows if keyword.lower() in r["name"].lower()])
-    elif page == "บันทึกความชอบ":
+    elif page == "Borrow / Rate":
+        st.subheader("📝 บันทึกความชอบรถมอเตอร์ไซค์")
+        st.caption("เมนูใช้ชื่อเดียวกับเว็บต้นฉบับ สำหรับข้อมูลรถใช้บันทึก LIKES")
         model = st.selectbox("รุ่นรถ", [r["name"] for r in rows])
         show_image(next(r for r in rows if r["name"] == model))
         enabled = st.radio("สถานะ", ["ชอบ", "ยกเลิกความชอบ"]) == "ชอบ"
         if st.button("บันทึก", type="primary"):
             set_like(user, model, enabled)
             st.success("บันทึกแล้ว ผลแนะนำจะคำนวณจากความชอบล่าสุด")
-    elif page == "กราฟความสัมพันธ์":
+    elif page == "Graph Explorer":
         edges = query("MATCH (u:User)-[:LIKES]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle", {"users":USERS,"models":MODELS})
         dot = ["digraph G {", "rankdir=LR;"]
         for edge in edges:
