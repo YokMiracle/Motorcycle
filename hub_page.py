@@ -5,11 +5,11 @@ st.markdown('''<style>
 .stApp{background:radial-gradient(ellipse at 50% 0%,#fce8ef 0%,#fff7fa 45%,#fffafa 100%);color:#654b56}
 [data-testid="stHeader"]{background:transparent}
 .block-container{max-width:1400px;padding:3.5rem 2rem 2rem}
-.hub-hero{text-align:center;padding:1.8rem 1rem 2.8rem}
+.hub-hero{text-align:center;padding:1.8rem 1rem 1.2rem}
 .hub-badge{display:inline-block;padding:8px 18px;border:1px solid #ecd3df;border-radius:30px;font-size:11px;letter-spacing:.18em;color:#a16c83;background:#fff9fc}
 .hub-hero h1{font-size:clamp(30px,4vw,46px);line-height:1.3;font-weight:650;color:#795365;letter-spacing:-.025em;margin:22px 0 16px;padding:0}
 .hub-hero p{font-size:16px;color:#947986;line-height:1.9;margin:0}
-.hub-section{text-align:center;margin:0 0 22px;color:#a27e90;font-size:13px;letter-spacing:.025em}
+.hub-section{text-align:center;margin:0 0 12px;color:#a27e90;font-size:13px;letter-spacing:.025em}
 .st-key-structure,.st-key-analysis,.st-key-recommendation{background:#fffcfd;border:1px solid #efdee6!important;border-radius:24px!important;padding:26px!important;box-shadow:0 12px 35px #a16c8309;transition:transform .2s,box-shadow .2s}
 .st-key-structure:hover,.st-key-analysis:hover,.st-key-recommendation:hover{transform:translateY(-3px);box-shadow:0 16px 36px #a16c8314}
 .hub-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
@@ -29,7 +29,7 @@ st.markdown('''<style>
 .st-key-structure>[data-testid="stVerticalBlock"],.st-key-analysis>[data-testid="stVerticalBlock"],.st-key-recommendation>[data-testid="stVerticalBlock"]{height:100%!important;flex:1!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important}
 .st-key-structure [data-testid="stLinkButton"],.st-key-analysis [data-testid="stLinkButton"],.st-key-recommendation [data-testid="stButton"]{margin-top:auto!important}
 }
-@media(max-width:760px){.block-container{padding:2rem 1rem}.hub-hero{padding:.8rem 0 2rem}.hub-hero p{font-size:14px}.hub-card-copy{height:auto;min-height:84px}.hub-hero h1{font-size:31px}}
+@media(max-width:760px){.block-container{padding:2rem 1rem}.hub-hero{padding:.8rem 0 1rem}.hub-hero p{font-size:14px}.hub-card-copy{height:auto;min-height:84px}.hub-hero h1{font-size:31px}}
 @media(prefers-reduced-motion:reduce){.st-key-structure,.st-key-analysis,.st-key-recommendation{transition:none}.st-key-structure:hover,.st-key-analysis:hover,.st-key-recommendation:hover{transform:none}}
 </style>''', unsafe_allow_html=True)
 
@@ -53,7 +53,8 @@ ICONS = {
 
 def card_heading(kind, number, title, copy):
     st.markdown(f'''<div class="hub-card-top"><div class="hub-icon"><svg viewBox="0 0 24 24" aria-hidden="true">{ICONS[kind]}</svg></div><span class="hub-number">{number}</span></div><div class="hub-card-title" role="heading" aria-level="2">{title}</div><p class="hub-card-copy">{copy}</p>''', unsafe_allow_html=True)
-st.markdown('''<div class="hub-hero"><span class="hub-badge">MOTORCYCLE · RECOMMENDATION HUB</span><h1>รวมงาน Recommendation <br><p>เชื่อมโยงความชอบ สู่มอเตอร์ไซค์ที่น่าสนใจ<br>รวมโครงสร้างข้อมูล การวิเคราะห์ และระบบแนะนำไว้ในที่เดียว</p></div><div class="hub-section">เลือกส่วนของโปรเจกต์ที่ต้องการสำรวจ</div>''', unsafe_allow_html=True)
+
+st.markdown('''<div class="hub-hero"><span class="hub-badge">MOTORCYCLE · RECOMMENDATION HUB</span><h1>รวมงาน Recommendation<br></h1><p>เชื่อมโยงความชอบ สู่มอเตอร์ไซค์ที่น่าสนใจ<br>รวมโครงสร้างข้อมูล การวิเคราะห์ และระบบแนะนำไว้ในที่เดียว</p></div><div class="hub-section">เลือกส่วนของโปรเจกต์ที่ต้องการสำรวจ</div>''', unsafe_allow_html=True)
 
 columns = st.columns(3, gap='large')
 with columns[0], st.container(border=True, height=420, key='structure'):
