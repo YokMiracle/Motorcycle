@@ -1,137 +1,111 @@
 from pathlib import Path
-import base64, io, json
+import base64,io,json
 from datetime import date
 from urllib.parse import urlparse
 import pandas as pd
 from PIL import Image
 import streamlit as st
-from neo4j_service import (USERS, catalog, liked, recommend, seed_demo_data, rental_history,
-    record_rental, save_image, add_motorcycle, query)
+from neo4j_service import *
 
-ROOT = Path(__file__).parent
-st.set_page_config(page_title="Motorcycle Graph Recommendation", page_icon="🏍️", layout="wide")
-st.markdown("""
-<style>
-.block-container{padding-top:1.2rem;padding-bottom:2rem;max-width:1400px}.hero{padding:1.6rem 1.8rem;border-radius:20px;background:linear-gradient(125deg,#172033,#24324a 55%,#385b70);color:#fff;margin-bottom:1.1rem;box-shadow:0 8px 24px #00000014}.hero h1{margin:0;color:#fff;font-size:2rem}.hero p{margin:.4rem 0 0;opacity:.88}.section-note{color:#667085;font-size:.92rem}[data-testid="stSidebar"]{background:#f7f8fa}.stMetric{background:#fff;border:1px solid #e6e8ec;padding:14px;border-radius:16px}
-</style>""", unsafe_allow_html=True)
+ROOT=Path(__file__).parent
+st.set_page_config(page_title='Motorcycle Graph Recommendation',page_icon='🏍️',layout='wide')
+st.markdown('''<style>
+.block-container{padding-top:1.2rem;max-width:1280px}.hero{padding:28px 32px;border-radius:24px;background:linear-gradient(135deg,#111827,#1f2937 55%,#374151);color:white;margin-bottom:18px}.hero h1{margin:0;color:white}.hero p{margin:7px 0 0;opacity:.82}.soft{padding:14px 18px;border:1px solid #e5e7eb;border-radius:18px;background:#fff}.stButton>button{border-radius:12px}[data-testid="stMetric"]{border:1px solid #e5e7eb;padding:15px;border-radius:16px;background:white}</style>''',unsafe_allow_html=True)
 
 with st.sidebar:
-    st.image(str(ROOT/"img.jpg"), width=140)
-    st.markdown("## 🏍️ GraphMotorcycle")
-    st.caption("Motorcycle Rental Recommendation")
-    page=st.radio("เมนู",["ภาพรวมระบบ","รถแนะนำสำหรับคุณ","ค้นหารถเช่า","ประวัติการเช่า / ให้คะแนน","กราฟการเช่ารถ","จัดการข้อมูล / รูปภาพ"])
-    st.divider()
-    st.caption("Neo4j Graph Database + Streamlit")
+    if (ROOT/'img.jpg').exists(): st.image(str(ROOT/'img.jpg'),width=130)
+    st.title('🏍️ MotoGraph')
+    page=st.radio('เมนู',['หน้าหลัก','แนะนำรถสำหรับคุณ','บันทึกการเช่าและให้คะแนน','ประวัติการเช่า','กราฟความสัมพันธ์','จัดการข้อมูล'])
+    st.caption('Graph-based Recommendation · Neo4j')
 
-st.markdown('<div class="hero"><h1>🏍️ Motorcycle Graph Recommendation</h1><p>ระบบแนะนำรถมอเตอร์ไซค์จากความสัมพันธ์ ประวัติการเช่า และคะแนนของผู้ใช้</p></div>',unsafe_allow_html=True)
-try: query("RETURN 1 AS ok")
+st.markdown('<div class="hero"><h1>Motorcycle Graph Recommendation</h1><p>แนะนำรถจากความสัมพันธ์ระหว่างผู้ใช้ ประวัติการเช่า และคะแนนความพึงพอใจ</p></div>',unsafe_allow_html=True)
+try: query('RETURN 1 AS ok')
 except Exception:
-    st.error("ยังเชื่อมต่อ Neo4j ไม่ได้ กรุณาตั้งค่า .streamlit/secrets.toml ตาม README"); st.stop()
+    st.error('ยังเชื่อมต่อ Neo4j ไม่ได้ กรุณาตั้งค่า Secrets ตาม README'); st.stop()
 
-def image_bytes(upload):
-    if upload.size>5*1024*1024: raise ValueError("ภาพต้องไม่เกิน 5 MB")
-    im=Image.open(upload).convert("RGB"); im.thumbnail((1200,900)); buf=io.BytesIO(); im.save(buf,format="JPEG",quality=88)
-    return base64.b64encode(buf.getvalue()).decode()
+if not users() or not models():
+    st.warning('ยังไม่มีข้อมูลเริ่มต้น')
+    if st.button('สร้างข้อมูลรถและผู้ใช้เดิม',type='primary'): seed_demo_data(); st.rerun()
+    st.stop()
 
 def show_image(row):
     try:
-        if row.get("image_data"): st.image(base64.b64decode(row["image_data"]),use_container_width=True)
-        elif row.get("image_url"): st.image(row["image_url"],use_container_width=True)
-        else: st.image(str(ROOT/"assets"/"placeholder.png"),use_container_width=True)
-    except Exception: st.image(str(ROOT/"assets"/"placeholder.png"),use_container_width=True)
+        if row.get('image_data'): st.image(base64.b64decode(row['image_data']),use_container_width=True)
+        elif row.get('image_url'): st.image(row['image_url'],use_container_width=True)
+        else: st.image(str(ROOT/'assets'/'placeholder.png'),use_container_width=True)
+    except: st.image(str(ROOT/'assets'/'placeholder.png'),use_container_width=True)
 
-def cards(rows,recommendations=False):
-    if not rows: st.info("ไม่มีรายการสำหรับเงื่อนไขนี้"); return
+def user_picker(key): return st.selectbox('เลือกผู้ใช้',users(),key=key)
+def cards(rows,reco=False):
+    if not rows: st.info('ยังไม่มีรายการ'); return
     cols=st.columns(3)
-    for i,row in enumerate(rows):
+    for i,r in enumerate(rows):
         with cols[i%3]:
             with st.container(border=True):
-                show_image(row); st.subheader(row["name"])
-                if recommendations:
-                    st.write(f"อันดับ {i+1} · คะแนนแนะนำ {row['score']:.2f}")
-                    st.caption(f"⭐ {row['avg_rating']:.2f}/5 · {row['rating_count']} รีวิว")
-                    if row.get("similar_users"): st.write("ผู้ใช้ที่มีความสัมพันธ์ใกล้เคียง: "+", ".join(row["similar_users"]))
+                show_image(r); st.subheader(r['name'])
+                if reco:
+                    st.write(f"⭐ {r['avg_rating']:.2f}/5 · {r['rating_count']} คะแนน")
+                    st.progress(min(float(r['score'])/12,1.0),text=f"คะแนนแนะนำ {r['score']:.2f}")
+                    if r['similar_users']: st.caption('ผู้ใช้ที่มีพฤติกรรมคล้ายกัน: '+', '.join(r['similar_users']))
+                    if r['shared_models']: st.caption('เชื่อมโยงผ่านรถที่เคยเช่าเหมือนกัน: '+', '.join(r['shared_models']))
 
-rows=catalog()
+if page=='หน้าหลัก':
+    edges=graph_edges(); u=user_picker('home_user')
+    a,b,c,d=st.columns(4); a.metric('ผู้ใช้',len(users())); b.metric('รถทั้งหมด',len(models())); c.metric('ความสัมพันธ์ RENTED',len(edges)); d.metric('คะแนนเฉลี่ย',f"{sum(float(x['rating']) for x in edges if x['rating'] is not None)/max(1,len([x for x in edges if x['rating'] is not None])):.2f}/5")
+    st.divider(); left,right=st.columns([1,2])
+    h=rental_history(u)
+    with left:
+        st.subheader(f'👤 {u}'); st.metric('จำนวนครั้งที่เช่า',len(h)); st.metric('รุ่นที่เคยเช่า',len(set(x['name'] for x in h)))
+    with right:
+        st.subheader('กิจกรรมล่าสุด'); st.dataframe(pd.DataFrame(h),hide_index=True,use_container_width=True)
+    st.subheader('รถที่เคยเช่า'); cards(liked(u))
 
-if page=="จัดการข้อมูล / รูปภาพ":
-    st.subheader("⚙️ จัดการข้อมูล")
-    tab1,tab2=st.tabs(["➕ เพิ่มรถใหม่","🖼️ แก้ไขรูปรถ"])
+elif page=='แนะนำรถสำหรับคุณ':
+    u=user_picker('recommend_user'); st.caption('ระบบหาเพื่อนผู้ใช้ที่เคยเช่ารถเหมือนกัน แล้วนำรถที่คนเหล่านั้นชอบแต่คุณยังไม่เคยเช่ามาจัดอันดับ')
+    n=st.slider('จำนวนคำแนะนำ',1,10,6); result=recommend(u,n)
+    st.subheader(f'✨ แนะนำสำหรับ {u}'); cards(result,True)
+    if not result: st.info('ผู้ใช้นี้ยังมีข้อมูลเชื่อมโยงไม่พอ ลองบันทึกการเช่า/คะแนนเพิ่ม')
+
+elif page=='บันทึกการเช่าและให้คะแนน':
+    u=user_picker('rate_user'); rows=catalog(); m=st.selectbox('เลือกรถที่เคยเช่า',[x['name'] for x in rows]); show_image(next(x for x in rows if x['name']==m))
+    with st.form('rating'):
+        d=st.date_input('วันที่เช่า',date.today(),max_value=date.today()); rating=st.slider('คะแนนความพึงพอใจ',1.0,5.0,4.0,.5)
+        if st.form_submit_button('บันทึก',type='primary'):
+            record_rental(u,m,d.isoformat(),rating); st.success('บันทึกความสัมพันธ์ RENTED และคะแนนแล้ว'); st.rerun()
+
+elif page=='ประวัติการเช่า':
+    u=user_picker('history_user'); h=rental_history(u); st.subheader(f'ประวัติของ {u}')
+    if h: st.dataframe(pd.DataFrame(h),hide_index=True,use_container_width=True)
+    else: st.info('ยังไม่มีประวัติการเช่า')
+
+elif page=='กราฟความสัมพันธ์':
+    mode=st.radio('ขอบเขตกราฟ',['เฉพาะผู้ใช้','ผู้ใช้ทั้งหมด'],horizontal=True)
+    u=user_picker('graph_user') if mode=='เฉพาะผู้ใช้' else None; edges=graph_edges(u)
+    dot=['digraph G {','rankdir=LR;','graph [bgcolor="transparent"];','node [fontname="Arial"];']
+    for e in edges:
+        uid='u:'+e['user']; mid='m:'+e['motorcycle'];
+        dot += [f'{json.dumps(uid)} [label={json.dumps(e["user"])} shape=ellipse style=filled fillcolor="#DBEAFE"];',f'{json.dumps(mid)} [label={json.dumps(e["motorcycle"])} shape=box style="rounded,filled" fillcolor="#F3F4F6"];',f'{json.dumps(uid)} -> {json.dumps(mid)} [label={json.dumps("RENTED · "+str(e["rating"] if e["rating"] is not None else "-"))}];']
+    st.graphviz_chart('\n'.join(dot+['}']),use_container_width=True); st.dataframe(pd.DataFrame(edges),hide_index=True,use_container_width=True)
+
+elif page=='จัดการข้อมูล':
+    tab1,tab2,tab3=st.tabs(['เพิ่มรถ','เพิ่มผู้ใช้','แก้ไขรูปรถ'])
     with tab1:
-        st.write("เพิ่มรถมอเตอร์ไซค์ใหม่เข้าสู่ Neo4j และให้รถรุ่นนี้ใช้งานต่อในระบบได้")
-        with st.form("add_motorcycle_form",clear_on_submit=True):
-            name=st.text_input("ชื่อรถ / รุ่นรถ",placeholder="เช่น Honda PCX 160")
-            upload=st.file_uploader("รูปรถ JPG / PNG / WebP",type=["jpg","jpeg","png","webp"],key="new_img")
-            url=st.text_input("หรือ URL รูปภาพ (https://)",key="new_url")
-            submitted=st.form_submit_button("เพิ่มรถใหม่",type="primary")
-        if submitted:
-            try:
-                data=image_bytes(upload) if upload else ""
-                clean_url=url.strip() if urlparse(url.strip()).scheme=="https" else ""
-                if not upload and url.strip() and not clean_url: raise ValueError("URL รูปภาพต้องเป็น https://")
-                add_motorcycle(name,clean_url,data); st.success(f"เพิ่ม {name.strip()} แล้ว"); st.rerun()
-            except Exception as e: st.error(str(e))
-        st.divider(); st.markdown("#### รถทั้งหมดในระบบ")
-        st.dataframe(pd.DataFrame([{"ชื่อรถ":r["name"],"มีรูป":bool(r.get("image_data") or r.get("image_url"))} for r in catalog()]),hide_index=True,use_container_width=True)
+        st.subheader('เพิ่มรถใหม่เข้ากราฟ')
+        name=st.text_input('ชื่อรถใหม่'); upload=st.file_uploader('รูปรถ',type=['jpg','jpeg','png','webp'],key='newcar'); url=st.text_input('หรือ URL รูปภาพ https://',key='newurl')
+        if st.button('เพิ่มรถ',type='primary'):
+            data=''
+            if upload:
+                im=Image.open(upload).convert('RGB'); im.thumbnail((1200,900)); buf=io.BytesIO(); im.save(buf,'JPEG',quality=88); data=base64.b64encode(buf.getvalue()).decode()
+            if url and not (urlparse(url).scheme=='https' and urlparse(url).netloc): st.error('URL ต้องเป็น https://')
+            else: add_motorcycle(name,url.strip(),data); st.success('เพิ่มรถแล้ว รถจะปรากฏในทุกหน้าของระบบ'); st.rerun()
     with tab2:
-        current=catalog()
-        if not current: st.info("ยังไม่มีข้อมูลรถ")
-        else:
-            model=st.selectbox("เลือกรถที่ต้องการแก้ไข",[r["name"] for r in current])
-            row=next(r for r in current if r["name"]==model); c1,c2=st.columns([1,2])
-            with c1: show_image(row)
-            with c2:
-                upload=st.file_uploader("อัปโหลดรูปใหม่",type=["jpg","jpeg","png","webp"],key="edit_img")
-                url=st.text_input("หรือ URL รูปภาพ",value=row.get("image_url") or "",key="edit_url")
-                if st.button("บันทึกรูป",type="primary"):
-                    try:
-                        if upload: save_image(model,image_data=image_bytes(upload))
-                        elif urlparse(url).scheme=="https" and urlparse(url).netloc: save_image(model,url=url.strip())
-                        else: raise ValueError("เลือกไฟล์ภาพหรือใส่ URL https ที่ถูกต้อง")
-                        st.success("บันทึกรูปแล้ว"); st.rerun()
-                    except Exception as e: st.error(str(e))
-    st.divider()
-    with st.expander("สร้างข้อมูลตัวอย่างเริ่มต้น"):
-        st.caption("ใช้สำหรับสร้างผู้ใช้/รถ/ความสัมพันธ์ตัวอย่างเดิม โดยไม่ลบข้อมูลที่เพิ่มภายหลัง")
-        if st.button("สร้างข้อมูลตัวอย่าง"): seed_demo_data(); st.success("สร้างข้อมูลตัวอย่างแล้ว"); st.rerun()
-else:
-    if not rows:
-        st.warning("ยังไม่มีข้อมูลรถ ไปที่หน้าจัดการข้อมูลเพื่อสร้างข้อมูลตัวอย่างก่อน"); st.stop()
-
-    # Each analytical page has its own user selector, matching the reference workflow.
-    if page=="ภาพรวมระบบ":
-        edges=query("MATCH (u:User)-[r:RENTED]->(m:Motorcycle) WHERE u.name IN $users RETURN u.name AS user,m.name AS motorcycle,r.rating AS rating",{"users":USERS})
-        a,b,c,d=st.columns(4); a.metric("ผู้ใช้",len(USERS)); b.metric("รุ่นรถ",len(rows)); c.metric("รายการเช่า",len(edges)); d.metric("คะแนนเฉลี่ย / 5",f"{sum((e['rating'] or 0) for e in edges)/max(sum(e['rating'] is not None for e in edges),1):.2f}")
-        st.divider()
-        user=st.selectbox("เลือกชื่อผู้ใช้เพื่อดูภาพรวม",USERS,key="overview_user")
-        history=rental_history(user); left,right=st.columns([1,2])
-        with left: st.subheader(f"👤 {user}"); st.write("**จำนวนครั้งที่เช่า:**",len(history)); st.write("**รุ่นที่เคยเช่า:**",len({h['name'] for h in history}))
-        with right: st.subheader("ประวัติการเช่า"); st.dataframe(pd.DataFrame(history),hide_index=True,use_container_width=True)
-        st.subheader("รถที่เคยเช่า"); cards(liked(user))
-    elif page=="รถแนะนำสำหรับคุณ":
-        st.subheader("✨ รถแนะนำสำหรับคุณ")
-        user=st.selectbox("เลือกชื่อผู้ใช้",USERS,key="rec_user"); top_n=st.slider("จำนวนคำแนะนำ",1,10,6)
-        st.caption("แนะนำจากผู้ใช้ที่เคยเช่ารถรุ่นเดียวกัน และตัดรถที่ผู้ใช้นี้เคยเช่าแล้ว")
-        cards(recommend(user,top_n),True)
-    elif page=="ค้นหารถเช่า":
-        st.subheader("🔎 ค้นหารถเช่า"); keyword=st.text_input("ค้นหาชื่อหรือรุ่นรถ",placeholder="พิมพ์ชื่อรถ...")
-        cards([r for r in rows if keyword.lower() in r['name'].lower()])
-    elif page=="ประวัติการเช่า / ให้คะแนน":
-        st.subheader("📝 ประวัติการเช่า / ให้คะแนน")
-        user=st.selectbox("เลือกชื่อผู้ใช้",USERS,key="history_user")
-        model=st.selectbox("เลือกรุ่นรถ",[r['name'] for r in rows]); show_image(next(r for r in rows if r['name']==model))
-        with st.form("rental_form",clear_on_submit=True):
-            rental_date=st.date_input("วันที่เช่า",value=date.today(),max_value=date.today()); rating=st.slider("คะแนนความพึงพอใจ",1.0,5.0,4.0,.5); submit=st.form_submit_button("บันทึก",type="primary")
-        if submit:
-            try: record_rental(user,model,rental_date.isoformat(),rating); st.success("บันทึกประวัติและคะแนนแล้ว"); st.rerun()
-            except ValueError as e: st.error(str(e))
-        st.dataframe(pd.DataFrame(rental_history(user)),hide_index=True,use_container_width=True)
-    elif page=="กราฟการเช่ารถ":
-        st.subheader("🕸️ กราฟความสัมพันธ์การเช่ารถ")
-        user=st.selectbox("เลือกชื่อผู้ใช้",["ผู้ใช้ทั้งหมด"]+USERS,key="graph_user")
-        if user=="ผู้ใช้ทั้งหมด": edges=query("MATCH (u:User)-[r:RENTED]->(m:Motorcycle) WHERE u.name IN $users RETURN u.name AS user,m.name AS motorcycle,r.rating AS rating",{"users":USERS})
-        else: edges=query("MATCH (u:User {name:$user})-[r:RENTED]->(m:Motorcycle) RETURN u.name AS user,m.name AS motorcycle,r.rating AS rating",{"user":user})
-        dot=["digraph G {","rankdir=LR;","node [fontname=\"Arial\"];"]
-        for e in edges:
-            dot += [f'{json.dumps("user:"+e["user"])} [label={json.dumps(e["user"])} shape=ellipse];',f'{json.dumps("model:"+e["motorcycle"])} [label={json.dumps(e["motorcycle"])} shape=box];',f'{json.dumps("user:"+e["user"])} -> {json.dumps("model:"+e["motorcycle"])} [label="RENTED / {e["rating"] if e["rating"] is not None else "-"}"];']
-        st.graphviz_chart("\n".join(dot+["}"]),use_container_width=True); st.dataframe(pd.DataFrame(edges),hide_index=True,use_container_width=True)
+        newuser=st.text_input('ชื่อผู้ใช้ใหม่')
+        if st.button('เพิ่มผู้ใช้'): add_user(newuser); st.success('เพิ่มผู้ใช้แล้ว'); st.rerun()
+    with tab3:
+        rows=catalog(); m=st.selectbox('เลือกรถ',[x['name'] for x in rows],key='editcar'); row=next(x for x in rows if x['name']==m); show_image(row)
+        upload=st.file_uploader('เปลี่ยนรูป',type=['jpg','jpeg','png','webp'],key='editimg'); url=st.text_input('หรือ URL ใหม่',value=row.get('image_url') or '',key='editurl')
+        if st.button('บันทึกรูป'):
+            data=row.get('image_data') or ''
+            if upload:
+                im=Image.open(upload).convert('RGB'); im.thumbnail((1200,900)); buf=io.BytesIO(); im.save(buf,'JPEG',quality=88); data=base64.b64encode(buf.getvalue()).decode(); url=''
+            save_image(m,url.strip(),data); st.success('บันทึกแล้ว'); st.rerun()
