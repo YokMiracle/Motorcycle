@@ -86,7 +86,7 @@ elif page.startswith('🟣'):
 elif page.startswith('⚪ 🛵'):
  t1,t2,t3=st.tabs(['➕ เพิ่มมอเตอร์ไซค์','📋 บันทึกการเลือก','🗑️ ลบมอเตอร์ไซค์'])
  with t1:
-  n=st.text_input('ชื่อมอเตอร์ไซค์'); price=st.number_input('ราคา (บาท)',0,10000000,0,1000); up=st.file_uploader('รูปภาพ (ไม่บังคับ)',type=['jpg','jpeg','png','webp'])
+  n=st.text_input('ชื่อมอเตอร์ไซค์');  up=st.file_uploader('รูปภาพ (ไม่บังคับ)',type=['jpg','jpeg','png','webp'])
   if st.button('เพิ่มมอเตอร์ไซค์'):
    data=''
    if up:
