@@ -39,10 +39,24 @@ def seed_demo_data():
     WITH DISTINCT setup SET setup.initialized=true""", {"rows":[dict(row, rental_date=f"2026-09-{i+1:02d}", rating=[4.5,4.0,5.0,3.5][i % 4]) for i,row in enumerate(DATA["likes"])]}, True)
 
 def catalog():
-    return query("MATCH (m:Motorcycle) WHERE m.name IN $models RETURN DISTINCT m.name AS name, m.image_url AS image_url, m.image_data AS image_data ORDER BY name", {"models":MODELS})
+    return query("MATCH (m:Motorcycle) RETURN DISTINCT m.name AS name, m.image_url AS image_url, m.image_data AS image_data ORDER BY name")
+
+def all_users():
+    rows = query("MATCH (u:User) RETURN DISTINCT u.name AS name ORDER BY name")
+    return [r["name"] for r in rows]
+
+def add_motorcycle(name, url="", image_data=""):
+    name = (name or "").strip()
+    if not name:
+        raise ValueError("กรุณาใส่ชื่อรถ")
+    exists = query("MATCH (m:Motorcycle {name:$name}) RETURN count(m) AS n", {"name":name})
+    if exists and exists[0]["n"]:
+        raise ValueError("มีรถชื่อนี้อยู่แล้ว")
+    query("CREATE (m:Motorcycle {name:$name, image_url:$url, image_data:$data})", {"name":name,"url":url,"data":image_data}, True)
+    return name
 
 def liked(user):
-    return query("MATCH (:User {name:$user})-[:RENTED]->(m:Motorcycle) WHERE m.name IN $models RETURN DISTINCT m.name AS name, m.image_url AS image_url, m.image_data AS image_data ORDER BY name", {"user":user,"models":MODELS})
+    return query("MATCH (:User {name:$user})-[:RENTED]->(m:Motorcycle) RETURN DISTINCT m.name AS name, m.image_url AS image_url, m.image_data AS image_data ORDER BY name", {"user":user})
 
 RECOMMEND = """
 MATCH (me:User {name:$user})-[:RENTED]->(shared:Motorcycle)<-[:RENTED]-(other:User)-[:RENTED]->(rec:Motorcycle)
@@ -61,17 +75,19 @@ ORDER BY score DESC, name ASC LIMIT $limit
 """
 
 def recommend(user, limit=6):
-    return query(RECOMMEND, {"user":user,"users":USERS,"models":MODELS,"limit":int(limit)})
+    users = all_users()
+    models = [r["name"] for r in catalog()]
+    return query(RECOMMEND, {"user":user,"users":users,"models":models,"limit":int(limit)})
 
 def rental_history(user):
     return query("""MATCH (:User {name:$user})-[r:RENTED]->(m:Motorcycle)
     WHERE m.name IN $models
     RETURN r.rental_id AS rental_id, m.name AS name, toString(coalesce(r.rental_date,r.start_date)) AS rental_date, r.rating AS rating,
            coalesce(r.is_demo,false) AS is_demo
-    ORDER BY rental_date DESC, rental_id""", {"user":user,"models":MODELS})
+    ORDER BY rental_date DESC, rental_id""", {"user":user,"models":[r["name"] for r in catalog()]})
 
 def record_rental(user, model, rental_date, rating):
-    if user not in USERS or model not in MODELS:
+    if user not in all_users() or model not in [r["name"] for r in catalog()]:
         raise ValueError("ไม่พบผู้ใช้หรือรุ่นรถ")
     if date.fromisoformat(rental_date) > date.today():
         raise ValueError("วันที่เคยเช่าต้องไม่เป็นวันในอนาคต")
@@ -85,6 +101,6 @@ def record_rental(user, model, rental_date, rating):
     return rid
 
 def save_image(model, url="", image_data=""):
-    if model not in MODELS:
+    if model not in [r["name"] for r in catalog()]:
         raise ValueError("Unknown motorcycle")
     query("MATCH (m:Motorcycle {name:$model}) SET m.image_url=$url, m.image_data=$data", {"model":model,"url":url,"data":image_data}, True)
