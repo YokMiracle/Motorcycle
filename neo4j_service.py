@@ -14,7 +14,7 @@ def setup_data():
  query('UNWIND $x AS x MERGE (m:Motorcycle{name:x.name}) SET m.image_url=coalesce(m.image_url,x.image_url),m.image_data=coalesce(m.image_data,x.image_data),m.price=coalesce(m.price,0)',{'x':DATA['motorcycles']},True)
  query("UNWIND $x AS x MATCH (u:User{name:x.user}),(m:Motorcycle{name:x.motorcycle}) MERGE (u)-[r:ORDERED]->(m) ON CREATE SET r.ordered_at=date('2026-09-01')",{'x':DATA['likes']},True)
  # friendships generated once from users who share motorcycles, giving the demo a usable friend graph
- query('''MATCH (a:User)-[:ORDERED]->(m)<-[:ORDERED]-(b:User) WHERE a.name<b.name WITH a,b,count(DISTINCT m) s WHERE s>0 MERGE (a)-[:FRIEND]-(b)''',w=True)
+ query('''MATCH (a:User)-[:ORDERED]->(m)<-[:ORDERED]-(b:User) WHERE a.name<b.name WITH a,b,count(DISTINCT m) s WHERE s>0 MERGE (a)-[:FRIEND]->(b)
  # migrate previous relations if present
  query('MATCH (u:User)-[:LIKES|RENTED]->(m:Motorcycle) MERGE (u)-[:ORDERED]->(m)',w=True)
 def users(): return [x['name'] for x in query('MATCH(u:User) RETURN u.name name ORDER BY name')]
