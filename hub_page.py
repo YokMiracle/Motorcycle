@@ -22,13 +22,6 @@ st.markdown('''<style>
 [data-testid="stLinkButton"] a:hover,[data-testid="stButton"] button:hover{background:#f4dce7!important;border-color:#dcb3c6!important}
 .hub-footer{border-top:1px solid #ecdde4;margin-top:42px;padding-top:24px;text-align:center;color:#a58a97;font-size:12px;line-height:2}
 .hub-footer strong{font-weight:500;color:#8d6a7d}
-/* Equal outer frames and bottom-aligned actions on desktop. */
-@media(min-width:761px){
-[data-testid="stHorizontalBlock"]>[data-testid="stColumn"]{display:flex;flex-direction:column}
-.st-key-structure,.st-key-analysis,.st-key-recommendation{height:370px!important;min-height:370px!important;max-height:370px!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important}
-.st-key-structure>[data-testid="stVerticalBlock"],.st-key-analysis>[data-testid="stVerticalBlock"],.st-key-recommendation>[data-testid="stVerticalBlock"]{height:100%!important;flex:1!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important}
-.st-key-structure [data-testid="stLinkButton"],.st-key-analysis [data-testid="stLinkButton"],.st-key-recommendation [data-testid="stButton"]{margin-top:auto!important}
-}
 @media(max-width:760px){.block-container{padding:2rem 1rem}.hub-hero{padding:.8rem 0 2rem}.hub-hero p{font-size:14px}.hub-card-copy{height:auto;min-height:84px}.hub-hero h1{font-size:31px}}
 @media(prefers-reduced-motion:reduce){.st-key-structure,.st-key-analysis,.st-key-recommendation{transition:none}.st-key-structure:hover,.st-key-analysis:hover,.st-key-recommendation:hover{transform:none}}
 </style>''', unsafe_allow_html=True)
@@ -57,13 +50,13 @@ def card_heading(kind, number, title, copy):
 st.markdown('''<div class="hub-hero"><span class="hub-badge">MOTORCYCLE · RECOMMENDATION HUB</span><h1>ค้นพบมอเตอร์ไซค์<br>ที่ใช่สำหรับคุณ</h1><p>เชื่อมโยงความชอบ สู่มอเตอร์ไซค์ที่น่าสนใจ<br>รวมโครงสร้างข้อมูล การวิเคราะห์ และระบบแนะนำไว้ในที่เดียว</p></div><div class="hub-section">เลือกส่วนของโปรเจกต์ที่ต้องการสำรวจ</div>''', unsafe_allow_html=True)
 
 columns = st.columns(3, gap='medium')
-with columns[0], st.container(border=True, height=370, key='structure'):
+with columns[0], st.container(border=True, key='structure'):
     card_heading('structure', '01 / DATA', 'โครงสร้างข้อมูล', 'สำรวจข้อมูลผู้ใช้และมอเตอร์ไซค์<br>พร้อมแนวทางสร้างกราฟ<br>เพื่อเชื่อมโยงความชอบของแต่ละคน')
     st.link_button('เปิดโครงสร้างข้อมูล ↗', colab_url('STRUCTURE_COLAB_URL'), use_container_width=True)
-with columns[1], st.container(border=True, height=370, key='analysis'):
+with columns[1], st.container(border=True, key='analysis'):
     card_heading('analysis', '02 / CONNECTIONS', 'วิเคราะห์ความสัมพันธ์', 'ค้นหาผู้ใช้ที่มีความชอบคล้ายกัน<br>และสำรวจความเชื่อมโยง<br>ที่นำไปสู่คำแนะนำใหม่ ๆ')
     st.link_button('เปิดการวิเคราะห์ ↗', colab_url('ANALYSIS_COLAB_URL'), use_container_width=True)
-with columns[2], st.container(border=True, height=370, key='recommendation'):
+with columns[2], st.container(border=True, key='recommendation'):
     card_heading('recommendation', '03 / DISCOVER', 'แนะนำมอเตอร์ไซค์', 'ลองค้นหามอเตอร์ไซค์ที่น่าสนใจ<br>จัดการข้อมูลผู้ใช้และรถ<br>พร้อมสำรวจกราฟความสัมพันธ์')
     if st.button('เข้าสู่ระบบแนะนำ →', use_container_width=True):
         st.switch_page(recommender_page)
