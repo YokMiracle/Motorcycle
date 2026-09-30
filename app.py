@@ -2,11 +2,12 @@ from pathlib import Path
 import base64
 import io
 import json
+from datetime import date, timedelta
 from urllib.parse import urlparse
 import pandas as pd
 from PIL import Image
 import streamlit as st
-from neo4j_service import USERS, MODELS, catalog, liked, recommend, seed_demo_data, set_like, save_image, query
+from neo4j_service import USERS, MODELS, catalog, liked, recommend, seed_demo_data, rental_history, record_rental, return_rental, save_image, query
 
 ROOT = Path(__file__).parent
 st.set_page_config(page_title="Motorcycle Recommender", page_icon="🏍️", layout="wide")
@@ -23,12 +24,12 @@ with st.sidebar:
     st.image(str(ROOT / "img.jpg"), width=150)
     st.markdown("## 🏍️ GraphMotorcycle")
     st.caption("Neo4j Aura + Streamlit")
-    page = st.radio("เมนู", ["Dashboard", "Recommendations", "Book Search", "Borrow / Rate", "Graph Explorer", "Admin / Setup"])
+    page = st.radio("เมนู", ["ภาพรวมระบบ", "รถแนะนำสำหรับคุณ", "ค้นหารถเช่า", "เช่ารถ / ให้คะแนน", "กราฟการเช่ารถ", "จัดการข้อมูล / รูปภาพ"])
     st.divider()
     st.caption("Bachelor-level Graph Database Project")
 st.markdown("""
-<div class="hero"><h1>🏍️ GraphMotorcycle Recommendation System</h1>
-<p>ระบบแนะนำรถมอเตอร์ไซค์ด้วย Graph Database ที่อธิบายเหตุผลของคำแนะนำได้</p></div>
+<div class="hero"><h1>🏍️ GraphMotorcycle Rental & Recommendation</h1>
+<p>ระบบเช่าและแนะนำรถมอเตอร์ไซค์จากประวัติการเช่าด้วย Graph Database</p></div>
 """, unsafe_allow_html=True)
 
 try:
@@ -66,12 +67,12 @@ def cards(rows, recommendations=False):
                 st.subheader(row["name"])
                 if recommendations:
                     st.write(f"อันดับ {i+1} · คะแนน {row['score']}")
-                    st.write("ผู้ใช้ที่มีความชอบใกล้กัน: " + ", ".join(row["similar_users"]))
-                    st.caption("ชอบรุ่นเดียวกัน: " + ", ".join(row["shared_models"]))
+                    st.write("ผู้ใช้ที่เคยเช่ารถรุ่นเดียวกัน: " + ", ".join(row["similar_users"]))
+                    st.caption("เคยเช่ารุ่นเดียวกัน: " + ", ".join(row["shared_models"]))
 
-if page == "Admin / Setup":
+if page == "จัดการข้อมูล / รูปภาพ":
     st.subheader("สร้างข้อมูลจาก Notebook")
-    st.caption("MERGE ข้อมูล 10 ผู้ใช้ 10 รุ่น และ 21 ความชอบ กดซ้ำได้ ไม่ลบข้อมูลเดิม และเก็บภาพที่เพิ่มไว้")
+    st.caption("ข้อมูล 10 ผู้ใช้ 10 รุ่น และประวัติเช่าจำลอง 21 รายการจากคู่ความชอบต้นทาง วันที่และสถานะเป็นตัวอย่าง กดซ้ำไม่เพิ่มประวัติเช่าจำลองซ้ำ")
     if st.button("สร้างข้อมูลตัวอย่าง", type="primary"):
         seed_demo_data()
         st.success("เพิ่มข้อมูลแล้ว")
@@ -105,39 +106,72 @@ if page == "Admin / Setup":
 else:
     rows = catalog()
     if not rows:
-        st.info("ไปที่ Admin / Setup แล้วกดสร้างข้อมูลตัวอย่าง")
+        st.info("ไปที่ จัดการข้อมูล / รูปภาพ แล้วกดสร้างข้อมูลตัวอย่าง")
         st.stop()
     user = st.selectbox("เลือกผู้ใช้", USERS)
-    if page == "Dashboard":
-        edges = query("MATCH (u:User)-[:LIKES]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle", {"users":USERS,"models":MODELS})
-        a,b,c = st.columns(3)
-        a.metric("ผู้ใช้ในชุดข้อมูล", len(USERS)); b.metric("รุ่นรถ", len(rows)); c.metric("ความชอบ", len(edges))
-        st.subheader(f"รถที่ {user} ชอบ")
+    if page == "ภาพรวมระบบ":
+        edges = query("MATCH (u:User)-[:RENTED]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle", {"users":USERS,"models":MODELS})
+        a,b,c,d = st.columns(4)
+        a.metric("ผู้ใช้", len(USERS)); b.metric("รุ่นรถเช่า", len(rows)); c.metric("รายการเช่าทั้งหมด", len(edges))
+        all_status = query("MATCH (u:User)-[r:RENTED]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models AND r.status='active' RETURN count(r) AS n", {"users":USERS,"models":MODELS})
+        d.metric("รายการที่ยังไม่คืนรถ", all_status[0]["n"])
+        st.divider()
+        left,right = st.columns([1,2])
+        history = rental_history(user)
+        with left:
+            st.subheader(user)
+            st.write("**จำนวนครั้งที่เช่า:**", len(history))
+            st.write("**รุ่นที่เคยเช่า:**", len({h["name"] for h in history}))
+        with right:
+            st.subheader("ประวัติการเช่ารถ")
+            st.caption("is_demo = True หมายถึงประวัติจำลองสำหรับสาธิต")
+            st.dataframe(pd.DataFrame(history), hide_index=True, use_container_width=True)
+        st.subheader("รถที่เคยเช่า")
         cards(liked(user))
-    elif page == "Recommendations":
+    elif page == "รถแนะนำสำหรับคุณ":
         st.subheader("✨ รถมอเตอร์ไซค์ที่แนะนำ")
         top_n = st.slider("จำนวนคำแนะนำสูงสุด", 1, 10, 6)
-        st.caption("คะแนน = จำนวนเส้นทาง ผู้ใช้ → รถที่ชอบ → ผู้ใช้อื่น → รถใหม่ · ตัดรุ่นที่ชอบแล้ว · คะแนนเท่ากันเรียงชื่อรุ่น")
+        st.caption("คะแนน = จำนวนเส้นทาง ผู้ใช้ → รถที่เคยเช่า → ผู้ใช้อื่น → รถรุ่นใหม่ · ตัดรุ่นที่เคยเช่าแล้ว · การเช่ารุ่นเดิมซ้ำไม่เพิ่มคะแนนซ้ำ")
         cards(recommend(user, top_n), True)
-    elif page == "Book Search":
+    elif page == "ค้นหารถเช่า":
         st.subheader("🔎 ค้นหารถมอเตอร์ไซค์")
         keyword = st.text_input("ชื่อรุ่นหรือยี่ห้อ")
         cards([r for r in rows if keyword.lower() in r["name"].lower()])
-    elif page == "Borrow / Rate":
-        st.subheader("📝 บันทึกความชอบรถมอเตอร์ไซค์")
-        st.caption("เมนูใช้ชื่อเดียวกับเว็บต้นฉบับ สำหรับข้อมูลรถใช้บันทึก LIKES")
+    elif page == "เช่ารถ / ให้คะแนน":
+        st.subheader("📝 บันทึกการเช่ารถ")
         model = st.selectbox("รุ่นรถ", [r["name"] for r in rows])
         show_image(next(r for r in rows if r["name"] == model))
-        enabled = st.radio("สถานะ", ["ชอบ", "ยกเลิกความชอบ"]) == "ชอบ"
-        if st.button("บันทึก", type="primary"):
-            set_like(user, model, enabled)
-            st.success("บันทึกแล้ว ผลแนะนำจะคำนวณจากความชอบล่าสุด")
-    elif page == "Graph Explorer":
-        edges = query("MATCH (u:User)-[:LIKES]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle", {"users":USERS,"models":MODELS})
+        with st.form("rental_form"):
+            start = st.date_input("วันเริ่มเช่า", value=date.today())
+            end = st.date_input("วันกำหนดคืนรถ", value=date.today()+timedelta(days=1))
+            submit = st.form_submit_button("บันทึกการเช่า", type="primary")
+        if submit:
+            try:
+                record_rental(user, model, start.isoformat(), end.isoformat())
+                st.success("บันทึกการเช่าแล้ว")
+            except ValueError as exc:
+                st.error(str(exc))
+        st.divider()
+        st.subheader("คืนรถ / ให้คะแนน")
+        history = rental_history(user)
+        if history:
+            choices = {f"{h['name']} · {h['start_date']} · {h['rental_id']}":h["rental_id"] for h in history}
+            with st.form("return_form"):
+                selected = st.selectbox("รายการเช่า", list(choices))
+                use_rating = st.checkbox("ให้คะแนนรถที่เช่า")
+                rating = st.slider("คะแนน", 1.0, 5.0, 4.0, 0.5)
+                done = st.form_submit_button("บันทึกคืนรถ / คะแนน")
+            if done:
+                return_rental(user, choices[selected], rating if use_rating else None)
+                st.success("บันทึกคืนรถและคะแนนแล้ว")
+        else:
+            st.info("ยังไม่มีประวัติการเช่า")
+    elif page == "กราฟการเช่ารถ":
+        edges = query("MATCH (u:User)-[:RENTED]->(m:Motorcycle) WHERE u.name IN $users AND m.name IN $models RETURN u.name AS user, m.name AS motorcycle", {"users":USERS,"models":MODELS})
         dot = ["digraph G {", "rankdir=LR;"]
         for edge in edges:
             dot.append(f'{json.dumps("user:"+edge["user"])} [label={json.dumps(edge["user"])} shape=ellipse];')
             dot.append(f'{json.dumps("model:"+edge["motorcycle"])} [label={json.dumps(edge["motorcycle"])} shape=box];')
-            dot.append(f'{json.dumps("user:"+edge["user"])} -> {json.dumps("model:"+edge["motorcycle"])} [label="LIKES"];')
+            dot.append(f'{json.dumps("user:"+edge["user"])} -> {json.dumps("model:"+edge["motorcycle"])} [label="RENTED"];')
         st.graphviz_chart("\n".join(dot+["}"]))
         st.dataframe(pd.DataFrame(edges), hide_index=True)
