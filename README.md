@@ -1,3 +1,25 @@
+# รวมการบ้าน — 664245008
+
+ณัฏฐนันท์ เกียรติจิรยาดา
+
+รวมการบ้านทั้ง 3 ไฟล์ที่แนบมา พร้อมไฟล์ประกอบโปรเจกต์มอเตอร์ไซค์
+
+[หน้า index](index.html) · [Repository](https://github.com/YokMiracle/Motorcycle)
+
+| งาน | การบ้าน | ไฟล์ | Colab |
+| --- | --- | --- | --- |
+| 01 | ระบบชมรมด้วย Neo4j | [เปิดไฟล์](homework/664245008_club_system.pdf) | — |
+| 02 | Motorcycle Recommender ด้วย Graph | [เปิดไฟล์](homework/664245008_Motorcycle_RecommenderSystem.ipynb) | [เปิด Colab](https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/664245008_Motorcycle_RecommenderSystem.ipynb) |
+| 03 | Motorcycle Recommender ด้วย Neo4j | [เปิดไฟล์](homework/CryptoRecommender_664245008_Neo4j.ipynb) | [เปิด Colab](https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/CryptoRecommender_664245008_Neo4j.ipynb) |
+
+ไฟล์ `CryptoRecommender_664245008_Neo4j.ipynb` มีเนื้อหาเกี่ยวกับมอเตอร์ไซค์ จึงใช้ชื่องานตามเนื้อหา โดยเก็บไฟล์ต้นฉบับไว้ครบถ้วน
+
+## โน้ตบุ๊กประกอบโปรเจกต์เดิม
+
+- [โครงสร้างข้อมูล](notebooks/01_motorcycle_data_structure.ipynb)
+- [วิเคราะห์ความสัมพันธ์](notebooks/02_motorcycle_relationship_analysis.ipynb)
+- [ระบบแนะนำฉบับรวม](MotorcycleRecommender_664245008_Neo4j.ipynb)
+
 # MotoGraph — Motorcycle Graph Recommendation
 
 เวอร์ชันนี้ปรับระบบจากแนว “ประวัติการเช่า” เป็นระบบแนะนำจาก “ความชอบ” ให้ทำงานในแนวเดียวกับ Graph Recommendation โดยยังใช้ข้อมูลมอเตอร์ไซค์เดิมของโปรเจกต์
