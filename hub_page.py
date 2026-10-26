@@ -5,6 +5,7 @@ from navigation import recommender_page
 
 ROOT = Path(__file__).resolve().parent
 REPOSITORY = "https://github.com/YokMiracle/Motorcycle"
+SLIDES_URL = "https://canva.link/vxvzt8wsxluxodh"
 
 st.markdown('''<style>
 .stApp{background:radial-gradient(ellipse at 50% 0%,#fce8ef 0%,#fff7fa 45%,#fffafa 100%);color:#654b56}
@@ -24,6 +25,8 @@ st.markdown('''<style>
 .st-key-club>[data-testid="stVerticalBlock"],.st-key-graph>[data-testid="stVerticalBlock"],.st-key-neo4j>[data-testid="stVerticalBlock"],.st-key-recommendation>[data-testid="stVerticalBlock"]{min-height:340px;justify-content:space-between}
 [data-testid="stLinkButton"] a,[data-testid="stButton"] button,[data-testid="stDownloadButton"] button{border:1px solid #ecd0dd!important;border-radius:12px!important;background:#f9e8f0!important;color:#95617b!important;font-size:14px;min-height:44px;box-shadow:none!important}
 [data-testid="stLinkButton"] a:hover,[data-testid="stButton"] button:hover,[data-testid="stDownloadButton"] button:hover{background:#f4dce7!important;border-color:#dcb3c6!important}
+.st-key-slides{background:#f9e8f0;border:1px solid #ecd0dd!important;border-radius:22px!important;padding:18px 24px!important;margin-top:16px}
+.hub-slides-title{color:#775565;font-size:20px;font-weight:600;margin:0}.hub-slides-copy{color:#947986;font-size:14px;margin:0}
 .hub-footer{border-top:1px solid #ecdde4;margin-top:24px;padding-top:18px;text-align:center;color:#a58a97;font-size:12px;line-height:1.8}
 @media(max-width:760px){.block-container{padding:1.5rem 1rem}.hub-hero h1{font-size:29px}.hub-card-title{font-size:20px}}
 </style>''', unsafe_allow_html=True)
@@ -65,5 +68,12 @@ with columns[3], st.container(border=True, height=400, key="recommendation"):
         if st.button("เข้าสู่ระบบแนะนำ →", use_container_width=True):
             st.switch_page(recommender_page)
         st.link_button("ดูโค้ดโปรเจกต์บน GitHub ↗", REPOSITORY, use_container_width=True)
+
+with st.container(border=True, key="slides"):
+    text_col, button_col = st.columns([3, 1], vertical_alignment="center")
+    with text_col:
+        st.markdown('''<p class="hub-slides-title">🎞️ สไลด์นำเสนอ</p><p class="hub-slides-copy">สไลด์ประกอบการนำเสนอโปรเจกต์ระบบแนะนำมอเตอร์ไซค์ (Canva)</p>''', unsafe_allow_html=True)
+    with button_col:
+        st.link_button("ดูสไลด์ ↗", SLIDES_URL, use_container_width=True)
 
 st.markdown('''<div class="hub-footer">ณัฏฐนันท์ เกียรติจิรยาดา · รหัสนักศึกษา 664245008<br>Motorcycle Recommendation Project</div>''', unsafe_allow_html=True)

@@ -1,6 +1,112 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>รวมการบ้าน | ณัฏฐนันท์ 664245008</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#fff7fa;color:#694d59;font-family:Tahoma,Arial,sans-serif;line-height:1.8}main{max-width:1200px;margin:auto;padding:56px 24px}header{text-align:center;margin-bottom:32px}.badge{font-size:12px;letter-spacing:2px;color:#a7758c}h1{font-size:clamp(28px,4vw,42px);margin:12px 0}header p{margin:0;color:#927583}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}article{display:flex;flex-direction:column;padding:28px;border:1px solid #ecd6e0;border-radius:24px;background:#fff;box-shadow:0 10px 30px #a16c8309}.number{color:#b5879d;font-size:13px}h2{font-size:21px;line-height:1.6;margin:18px 0 10px}article p{color:#927583;margin:0 0 28px}.actions{margin-top:auto;display:grid;gap:10px}a{color:#916279;text-decoration:none}a:hover{text-decoration:underline}.actions a{padding:10px 14px;background:#f9e8f0;border:1px solid #ecd0dd;border-radius:12px;text-align:center}.actions .secondary{background:#fff9fb}a:focus-visible{outline:3px solid #b46e92;outline-offset:3px}.resources{margin-top:28px;padding:24px;border:1px solid #ecd6e0;border-radius:20px;background:#fff}.resources h2{margin-top:0}.resources ul{margin-bottom:0}footer{text-align:center;border-top:1px solid #ecd6e0;margin-top:36px;padding-top:24px;font-size:13px;color:#927583}@media(max-width:850px){.grid{grid-template-columns:1fr}main{padding:32px 18px}}</style></head><body><main>
-<header><span class="badge">HOMEWORK · MOTORCYCLE PROJECT</span><h1>รวมการบ้านและโปรเจกต์</h1><p>ณัฏฐนันท์ เกียรติจิรยาดา · รหัสนักศึกษา 664245008</p><p>การบ้านทั้ง 3 ไฟล์ที่แนบมา พร้อมไฟล์ประกอบโปรเจกต์</p></header><section class="grid" aria-label="การบ้าน"><article><span class="number">งาน 01</span><h2>ระบบชมรมด้วย Neo4j</h2><p>งานระบบชมรม: นักศึกษา ชมรม ความสัมพันธ์ และคำสั่ง Cypher</p><div class="actions"><a href="https://github.com/YokMiracle/Motorcycle/blob/main/homework/664245008_club_system.pdf">ดูงานบน GitHub ↗</a><a class="secondary" href="homework/664245008_club_system.pdf">เปิด PDF ↗</a></div></article><article><span class="number">งาน 02</span><h2>Motorcycle Recommender ด้วย Graph</h2><p>โน้ตบุ๊กข้อมูลผู้ใช้ มอเตอร์ไซค์ และกราฟความชอบ</p><div class="actions"><a href="https://github.com/YokMiracle/Motorcycle/blob/main/homework/664245008_Motorcycle_RecommenderSystem.ipynb">ดูงานบน GitHub ↗</a><a class="secondary" href="https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/664245008_Motorcycle_RecommenderSystem.ipynb">เปิดใน Colab ↗</a></div></article><article><span class="number">งาน 03</span><h2>Motorcycle Recommender ด้วย Neo4j</h2><p>ไฟล์แนบชื่อ CryptoRecommender แต่เนื้อหาเป็นระบบแนะนำมอเตอร์ไซค์ด้วย Neo4j</p><div class="actions"><a href="https://github.com/YokMiracle/Motorcycle/blob/main/homework/CryptoRecommender_664245008_Neo4j.ipynb">ดูงานบน GitHub ↗</a><a class="secondary" href="https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/CryptoRecommender_664245008_Neo4j.ipynb">เปิดใน Colab ↗</a></div></article></section>
-<section class="resources"><h2>ไฟล์ประกอบโปรเจกต์</h2><ul><li><a href="https://github.com/YokMiracle/Motorcycle">Repository และโค้ดระบบแนะนำ</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/app.py">โปรแกรมหลัก Streamlit (app.py)</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/docs/PROJECT_GUIDE_TH.md">คู่มือโปรเจกต์</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/cypher/schema.cypher">โครงสร้างฐานข้อมูล Neo4j</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/cypher/recommendation.cypher">คำสั่งแนะนำมอเตอร์ไซค์</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/notebooks/01_motorcycle_data_structure.ipynb">โน้ตบุ๊กโครงสร้างข้อมูลเดิม</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/notebooks/02_motorcycle_relationship_analysis.ipynb">โน้ตบุ๊กวิเคราะห์ความสัมพันธ์เดิม</a></li><li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/MotorcycleRecommender_664245008_Neo4j.ipynb">โน้ตบุ๊กระบบแนะนำฉบับรวมเดิม</a></li></ul></section>
-<footer>Motorcycle Recommendation Project</footer></main></body></html>
+<style>
+:root{--bg:#fff7fa;--card:#fffcfd;--line:#ecd6e0;--text:#694d59;--muted:#927583;--accent:#f9e8f0;--accent-line:#ecd0dd;--link:#916279}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 0%,#fce8ef 0%,var(--bg) 45%,#fffafa 100%);color:var(--text);font-family:"Noto Sans Thai",Tahoma,Arial,sans-serif;line-height:1.8}
+main{max-width:1280px;margin:auto;padding:56px 24px}
+header{text-align:center;margin-bottom:36px}
+.badge{display:inline-block;padding:6px 18px;border:1px solid var(--line);border-radius:30px;font-size:11px;letter-spacing:.16em;color:#a16c83;background:#fff9fc}
+h1{font-size:clamp(28px,4vw,42px);line-height:1.4;margin:14px 0 6px;color:#795365;font-weight:650}
+header p{margin:0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+article{display:flex;flex-direction:column;padding:24px;border:1px solid var(--line);border-radius:22px;background:var(--card);box-shadow:0 10px 30px #a16c8309;transition:transform .15s,box-shadow .15s}
+article:hover{transform:translateY(-3px);box-shadow:0 14px 34px #a16c8318}
+.top{display:flex;justify-content:space-between;align-items:center}
+.icon{width:44px;height:44px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px}
+.number{color:#b795a6;font-size:12px;letter-spacing:.06em}
+h2{font-size:20px;line-height:1.6;margin:16px 0 8px;color:#775565;font-weight:600}
+article p{color:var(--muted);font-size:14px;margin:0 0 24px}
+.actions{margin-top:auto;display:grid;gap:10px}
+a{color:var(--link);text-decoration:none}
+.btn{display:block;padding:10px 14px;background:var(--accent);border:1px solid var(--accent-line);border-radius:12px;text-align:center;font-size:14px;transition:background .15s}
+.btn:hover{background:#f4dce7;text-decoration:none}
+.btn.secondary{background:#fff9fb}
+.btn.primary{background:#b46e92;border-color:#b46e92;color:#fff}
+.btn.primary:hover{background:#9d5c7d}
+a:focus-visible{outline:3px solid #b46e92;outline-offset:3px}
+.slides{margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:22px 28px;border:1px solid var(--accent-line);border-radius:22px;background:var(--accent)}
+.slides h2{margin:0;font-size:20px}
+.slides p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.slides .btn{min-width:200px}
+.resources{margin-top:24px;padding:24px 28px;border:1px solid var(--line);border-radius:22px;background:var(--card)}
+.resources h2{margin-top:0}
+.resources ul{margin:0;padding-left:22px;columns:2;column-gap:40px}
+.resources li{break-inside:avoid;margin-bottom:4px}
+footer{text-align:center;border-top:1px solid var(--line);margin-top:36px;padding-top:22px;font-size:13px;color:#a58a97}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.grid{grid-template-columns:1fr}main{padding:32px 16px}.resources ul{columns:1}.slides .btn{width:100%}}
+</style></head><body><main>
+<header>
+<span class="badge">HOMEWORK · RECOMMENDATION HUB</span>
+<h1>รวมการบ้านและระบบแนะนำ</h1>
+<p>ณัฏฐนันท์ เกียรติจิรยาดา · รหัสนักศึกษา 664245008</p>
+<p>ระบบชมรม · กราฟมอเตอร์ไซค์ · Neo4j · สไลด์นำเสนอ</p>
+</header>
+
+<section class="grid" aria-label="การบ้าน">
+<article>
+<div class="top"><div class="icon">👥</div><span class="number">01 / CLUB</span></div>
+<h2>ระบบชมรมด้วย Neo4j</h2>
+<p>งานระบบชมรม: นักศึกษา ชมรม ความสัมพันธ์ และคำสั่ง Cypher พร้อมเอกสาร PDF</p>
+<div class="actions">
+<a class="btn" href="https://github.com/YokMiracle/Motorcycle/blob/main/homework/664245008_club_system.pdf" target="_blank" rel="noopener">เปิดการบ้านบน GitHub ↗</a>
+<a class="btn secondary" href="https://github.com/YokMiracle/Motorcycle/raw/main/homework/664245008_club_system.pdf" target="_blank" rel="noopener">เปิด / ดาวน์โหลด PDF ↓</a>
+</div>
+</article>
+
+<article>
+<div class="top"><div class="icon">🕸️</div><span class="number">02 / GRAPH</span></div>
+<h2>มอเตอร์ไซค์ด้วย Graph</h2>
+<p>สร้างกราฟผู้ใช้และมอเตอร์ไซค์ด้วย Python / NetworkX เพื่อสำรวจความชอบและแนวทางแนะนำ</p>
+<div class="actions">
+<a class="btn" href="https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/664245008_Motorcycle_RecommenderSystem.ipynb" target="_blank" rel="noopener">เปิดการบ้านใน Colab ↗</a>
+<a class="btn secondary" href="https://github.com/YokMiracle/Motorcycle/blob/main/homework/664245008_Motorcycle_RecommenderSystem.ipynb" target="_blank" rel="noopener">ดูไฟล์บน GitHub ↗</a>
+</div>
+</article>
+
+<article>
+<div class="top"><div class="icon">🔗</div><span class="number">03 / NEO4J</span></div>
+<h2>มอเตอร์ไซค์ด้วย Neo4j</h2>
+<p>วิเคราะห์ความสัมพันธ์และแนะนำมอเตอร์ไซค์ด้วย Neo4j (ไฟล์แนบชื่อ CryptoRecommender)</p>
+<div class="actions">
+<a class="btn" href="https://colab.research.google.com/github/YokMiracle/Motorcycle/blob/main/homework/CryptoRecommender_664245008_Neo4j.ipynb" target="_blank" rel="noopener">เปิดการบ้านใน Colab ↗</a>
+<a class="btn secondary" href="https://github.com/YokMiracle/Motorcycle/blob/main/homework/CryptoRecommender_664245008_Neo4j.ipynb" target="_blank" rel="noopener">ดูไฟล์บน GitHub ↗</a>
+</div>
+</article>
+
+<article>
+<div class="top"><div class="icon">🏍️</div><span class="number">04 / APPLICATION</span></div>
+<h2>ระบบแนะนำมอเตอร์ไซค์</h2>
+<p>ระบบแนะนำ เลือกผู้ใช้ จัดการข้อมูลรถ และสำรวจกราฟความสัมพันธ์ (แอป Streamlit)</p>
+<div class="actions">
+<a class="btn" href="https://github.com/YokMiracle/Motorcycle/blob/main/app.py" target="_blank" rel="noopener">ดูโปรแกรมหลัก (app.py) ↗</a>
+<a class="btn secondary" href="https://github.com/YokMiracle/Motorcycle" target="_blank" rel="noopener">ดูโค้ดโปรเจกต์บน GitHub ↗</a>
+</div>
+</article>
+</section>
+
+<section class="slides" aria-label="สไลด์นำเสนอ">
+<div>
+<h2>🎞️ สไลด์นำเสนอ</h2>
+<p>สไลด์ประกอบการนำเสนอโปรเจกต์ระบบแนะนำมอเตอร์ไซค์ (Canva)</p>
+</div>
+<a class="btn primary" href="https://canva.link/vxvzt8wsxluxodh" target="_blank" rel="noopener">ดูสไลด์ ↗</a>
+</section>
+
+<section class="resources">
+<h2>ไฟล์ประกอบโปรเจกต์</h2>
+<ul>
+<li><a href="https://github.com/YokMiracle/Motorcycle" target="_blank" rel="noopener">Repository และโค้ดระบบแนะนำ</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/app.py" target="_blank" rel="noopener">โปรแกรมหลัก Streamlit (app.py)</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/docs/PROJECT_GUIDE_TH.md" target="_blank" rel="noopener">คู่มือโปรเจกต์</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/cypher/schema.cypher" target="_blank" rel="noopener">โครงสร้างฐานข้อมูล Neo4j</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/cypher/recommendation.cypher" target="_blank" rel="noopener">คำสั่งแนะนำมอเตอร์ไซค์</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/notebooks/01_motorcycle_data_structure.ipynb" target="_blank" rel="noopener">โน้ตบุ๊กโครงสร้างข้อมูลเดิม</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/notebooks/02_motorcycle_relationship_analysis.ipynb" target="_blank" rel="noopener">โน้ตบุ๊กวิเคราะห์ความสัมพันธ์เดิม</a></li>
+<li><a href="https://github.com/YokMiracle/Motorcycle/blob/main/MotorcycleRecommender_664245008_Neo4j.ipynb" target="_blank" rel="noopener">โน้ตบุ๊กระบบแนะนำฉบับรวมเดิม</a></li>
+</ul>
+</section>
+
+<footer>ณัฏฐนันท์ เกียรติจิรยาดา · 664245008<br>Motorcycle Recommendation Project</footer>
+</main></body></html>
